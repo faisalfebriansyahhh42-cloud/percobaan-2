@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>📊 Istirahat Karyawan — User & Admin</title>
+<style>
+  body { font-family: Arial,sans-serif; background:#f4f6f8; padding:30px; max-width:900px; margin:auto; }
+  h1,h2{text-align:center;color:#333;}
+  .tabs{display:flex;justify-content:center;margin-bottom:20px;gap:10px;}
+  .tab-btn{padding:10px 20px;font-size:16px;cursor:pointer;border:none;background:#007bff;color:white;border-radius:5px;transition:0.3s;}
+  .tab-btn.active{background:#0056b3;}
+  .tab-content{display:none;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-bottom:40px;}
+  .tab-content.active{display:block;}
+  input[type="text"],input[type="password"],input[type="date"]{padding:10px;font-size:16px;width:250px;margin-right:10px;margin-bottom:10px;border:1px solid #ccc;border-radius:5px;}
+  button{padding:10px 20px;font-size:16px;cursor:pointer;background:#007bff;color:white;border:none;border-radius:5px;margin-bottom:10px;transition:0.3s;}
+  button:hover{background:#0056b3;}
+  table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-top:20px;margin-bottom:40px;}
+  th,td{border:1px solid #ddd;padding:12px;text-align:center;font-size:16px;}
+  th{background:#007bff;color:white;}
+  .valid{background:#e7f9ef;}
+  .invalid{background:#fdeaea;}
+  .timer{font-weight:bold;color:#d9534f;}
+  .spacer-6{margin-top:3em;margin-bottom:3em;}
+  .flex-center{text-align:center;margin-bottom:20px;}
+  .flex-center input[type="text"],.flex-center input[type="date"]{width:180px;margin-right:5px;}
+  #cameraModal{display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;}
+  #cameraModal.active{display:flex;}
+  #cameraContent{background:white;padding:20px;border-radius:8px;max-width:400px;width:90%;text-align:center;}
+  video{width:100%;border-radius:8px;}
+  canvas{display:none;}
+  #cameraButtons{margin-top:15px;display:flex;justify-content:space-around;}
+  #cameraButtons button{padding:10px 20px;font-size:16px;border-radius:5px;border:none;cursor:pointer;}
+  #btnTakePhoto{background:#28a745;color:white;}
+  #btnCancelPhoto{background:#dc3545;color:white;}
+  img.thumb{width:60px;height:60px;object-fit:cover;border-radius:5px;}
+</style>
+</head>
+<body>
+
+<h1>📊 Sistem Istirahat Karyawan</h1>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="user">User</button>
+  <button class="tab-btn" data-tab="admin">Admin</button>
+</div>
+
+<!-- ====================== USER ====================== -->
+<div id="user" class="tab-content active">
+  <div class="flex-center">
+    <input type="text" id="namaMulai" placeholder="Masukkan nama karyawan..." />
+    <button id="btnStart">Mulai Istirahat</button>
+  </div>
+  <div class="flex-center" style="margin-top:15px;">
+    <input type="text" id="namaSelesai" placeholder="Masukkan nama selesai istirahat..." />
+    <button id="btnEnd">Selesai Istirahat</button>
+  </div>
+</div>
+
+<!-- ====================== ADMIN ====================== -->
+<div id="admin" class="tab-content">
+  <div class="flex-center" id="adminLoginArea" style="margin-bottom:20px;">
+    <input type="password" id="passwordAdmin" placeholder="Masukkan password admin..." />
+    <button id="btnLoginAdmin">Login Admin</button>
+    <button id="btnLogoutAdmin" style="display:none; margin-left:10px; background:#dc3545;">Logout Admin</button>
+  </div>
+
+  <div id="adminDashboard" style="display:none;">
+    <h2>🔁 Karyawan Sedang Istirahat</h2>
+    <table>
+      <thead><tr><th>Nama</th><th>Waktu Mulai</th><th>Foto Mulai</th><th>Waktu Sisa / Lebih</th></tr></thead>
+      <tbody id="tabel"></tbody>
+    </table>
+
+    <div class="spacer-6"></div>
+
+    <div class="flex-center">
+      <input type="text" id="searchName" placeholder="Cari history..." />
+      <input type="date" id="filterTanggalDari" />
+      <input type="date" id="filterTanggalSampai" />
+      <button id="btnExportCSV">Export CSV</button>
+    </div>
+
+    <h2>🟢 History - Istirahat Sesuai (≤ 30 detik)</h2>
+    <table>
+      <thead><tr><th>Nama</th><th>Tanggal</th><th>Mulai</th><th>Selesai</th><th>Durasi</th><th>Foto Mulai</th><th>Foto Selesai</th></tr></thead>
+      <tbody id="history-sesuai"></tbody>
+    </table>
+
+    <h2>🔴 History - Tidak Sesuai (> 30 detik)</h2>
+    <table>
+      <thead><tr><th>Nama</th><th>Tanggal</th><th>Mulai</th><th>Selesai</th><th>Durasi</th><th>Foto Mulai</th><th>Foto Selesai</th></tr></thead>
+      <tbody id="history-tidak"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ====================== CAMERA MODAL ====================== -->
+<div id="cameraModal">
+  <div id="cameraContent">
+    <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
+    <div id="cameraButtons">
+      <button id="btnTakePhoto">Ambil Foto</button>
+      <button id="btnCancelPhoto">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // ===== Firebase import (MODULAR) =====
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBpV3eSOG2lJdM0hqVwZ5npvLPgHL0yYqY",
+    authDomain: "monitoringbreakcrew-5d7dc.firebaseapp.com",
+    projectId: "monitoringbreakcrew-5d7dc",
+    storageBucket: "monitoringbreakcrew-5d7dc.appspot.com",
+    messagingSenderId: "650007115253",
+    appId: "1:650007115253:web:b95ae25f2762c235999cbc",
+    measurementId: "G-4MPC043HY5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ===== Tabs =====
+  const tabs = document.querySelectorAll(".tab-btn");
+  const contents = document.querySelectorAll(".tab-content");
+  tabs.forEach(tab=>{
+    tab.addEventListener("click", ()=>{
+      tabs.forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      contents.forEach(c=>c.classList.remove("active"));
+      document.getElementById(tab.dataset.tab).classList.add("active");
+    });
+  });
+
+  // ===== Admin login =====
+  let isAdmin = false;
+  const adminPassword = "admin123";
+  const loginInput = document.getElementById("passwordAdmin");
+  const btnLogin = document.getElementById("btnLoginAdmin");
+  const btnLogout = document.getElementById("btnLogoutAdmin");
+  const adminDashboard = document.getElementById("adminDashboard");
+
+  btnLogin.onclick = ()=>{
+    if(loginInput.value===adminPassword){
+      isAdmin=true; alert("Login admin berhasil!");
+      loginInput.value="";
+      btnLogin.style.display="none";
+      btnLogout.style.display="inline-block";
+      adminDashboard.style.display="block";
+    } else alert("Password salah!");
+  };
+  btnLogout.onclick = ()=>{
+    isAdmin=false; alert("Logout admin berhasil!");
+    btnLogout.style.display="none";
+    btnLogin.style.display="inline-block";
+    adminDashboard.style.display="none";
+  };
+
+  // ===== Kamera =====
+  const cameraModal=document.getElementById("cameraModal");
+  const video=document.getElementById("video");
+  const canvas=document.getElementById("canvas");
+  const btnTakePhoto=document.getElementById("btnTakePhoto");
+  const btnCancelPhoto=document.getElementById("btnCancelPhoto");
+  let stream=null, fotoCallback=null, currentName="", currentAction="";
+
+  function openCamera(name, action, callback){
+    currentName=name; currentAction=action; fotoCallback=callback;
+    cameraModal.classList.add("active");
+    navigator.mediaDevices.getUserMedia({video:true}).then(s=>{
+      stream=s; video.srcObject=stream;
+    }).catch(err=>{
+      alert("Gagal akses kamera: "+err.message); cameraModal.classList.remove("active");
+    });
+  }
+  function closeCamera(){
+    cameraModal.classList.remove("active");
+    if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  }
+  btnTakePhoto.onclick = ()=>{
+    const ctx=canvas.getContext("2d");
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    const fotoData=canvas.toDataURL("image/png");
+    closeCamera(); if(fotoCallback) fotoCallback(currentName,currentAction,fotoData);
+  };
+  btnCancelPhoto.onclick=()=>{ closeCamera(); };
+
+  // ===== Start / End Istirahat =====
+  document.getElementById("btnStart").onclick=async()=>{
+    const nama=document.getElementById("namaMulai").value.trim();
+    if(!nama){ alert("Nama tidak boleh kosong!"); return; }
+    const q=query(collection(db,"daftar"),where("nama","==",nama));
+    const snap=await getDocs(q);
+    if(!snap.empty){ alert("Karyawan sedang istirahat!"); return; }
+    openCamera(nama,"start",onPhotoTaken);
+  };
+
+  document.getElementById("btnEnd").onclick=async()=>{
+    const nama=document.getElementById("namaSelesai").value.trim();
+    if(!nama){ alert("Nama tidak boleh kosong!"); return; }
+    const q=query(collection(db,"daftar"),where("nama","==",nama));
+    const snap=await getDocs(q);
+    if(snap.empty){ alert("Nama tidak ditemukan di daftar istirahat!"); return; }
+    openCamera(nama,"end",onPhotoTaken);
+  };
+
+  async function onPhotoTaken(nama,action,fotoData){
+    const now = new Date();
+    if(action==="start"){
+      await addDoc(collection(db,"daftar"),{
+        nama,
+        mulai: now,
+        selesai: new Date(now.getTime() + 30*1000), // ⏱️ ganti ke 60*60*1000 untuk 1 jam
+        fotoMulai: fotoData
+      });
+      document.getElementById("namaMulai").value="";
+    } else {
+      const q=query(collection(db,"daftar"),where("nama","==",nama));
+      const snap=await getDocs(q);
+      snap.forEach(async docSnap=>{
+        const rec=docSnap.data();
+        const selesaiNyata=new Date();
+        const totalDetik=Math.floor((selesaiNyata - rec.mulai.toDate()) / 1000);
+        const kategori=totalDetik<=30?"sesuai":"tidak";
+        await addDoc(collection(db,"history"),{
+          nama,
+          tanggal: now.toLocaleDateString(),
+          mulai: rec.mulai.toDate().toLocaleTimeString(),
+          selesai: selesaiNyata.toLocaleTimeString(),
+          durasi: totalDetik+" detik",
+          kategori,
+          fotoMulai: rec.fotoMulai,
+          fotoSelesai: fotoData
+        });
+        await deleteDoc(doc(db,"daftar",docSnap.id));
+      });
+      document.getElementById("namaSelesai").value="";
+    }
+  }
+
+  // ===== Realtime Render =====
+  onSnapshot(collection(db,"daftar"), snap=>{
+    const tbody=document.getElementById("tabel");
+    tbody.innerHTML="";
+    snap.forEach(d=>{
+      const data=d.data();
+      const now=new Date();
+      let sisaMs=new Date(data.selesai.toDate())-now;
+      let status="Sisa"; if(sisaMs<0){status="Lebih"; sisaMs=Math.abs(sisaMs);}
+      const menit=Math.floor((sisaMs/1000/60)%60), detik=Math.floor((sisaMs/1000)%60);
+      const fotoHtml=data.fotoMulai?`<img class="thumb" src="${data.fotoMulai}">`:"";
+      tbody.innerHTML+=`<tr><td>${data.nama}</td><td>${new Date(data.mulai.toDate()).toLocaleTimeString()}</td><td>${fotoHtml}</td><td class="timer">${status}: ${menit}m ${detik}s</td></tr>`;
+    });
+  });
+
+  onSnapshot(collection(db,"history"), snap=>{
+    const ses=document.getElementById("history-sesuai");
+    const tid=document.getElementById("history-tidak");
+    ses.innerHTML=""; tid.innerHTML="";
+    snap.forEach(d=>{
+      const h=d.data();
+      const fotoMulaiHtml=h.fotoMulai?`<img class="thumb" src="${h.fotoMulai}">`:"";
+      const fotoSelesaiHtml=h.fotoSelesai?`<img class="thumb" src="${h.fotoSelesai}">`:"";
+      const row=`<tr class="${h.kategori==="sesuai"?'valid':'invalid'}"><td>${h.nama}</td><td>${h.tanggal}</td><td>${h.mulai}</td><td>${h.selesai}</td><td>${h.durasi}</td><td>${fotoMulaiHtml}</td><td>${fotoSelesaiHtml}</td></tr>`;
+      if(h.kategori==="sesuai") ses.innerHTML+=row; else tid.innerHTML+=row;
+    });
+  });
+</script>
+</body>
+</html>
