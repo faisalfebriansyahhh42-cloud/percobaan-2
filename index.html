@@ -3,31 +3,32 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Istirahat Karyawan — Realtime</title>
+<title>Sistem Istirahat Karyawan — Realtime (breaks & history)</title>
 <style>
-  body { font-family: Arial, sans-serif; background:#f4f6f8; padding:24px; max-width:960px; margin:auto;}
-  h1,h2{text-align:center;color:#222;}
-  .tabs{display:flex;justify-content:center;gap:10px;margin-bottom:18px;}
-  .tab-btn{padding:10px 18px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer;}
-  .tab-btn.active{background:#0056b3;}
-  .tab-content{display:none;background:#fff;padding:18px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:20px;}
-  .tab-content.active{display:block;}
-  .flex-center{text-align:center;margin-bottom:12px;}
-  input[type="text"],input[type="password"],input[type="date"]{padding:10px;border:1px solid #ccc;border-radius:6px;font-size:16px;width:220px;margin-right:8px;}
-  button{padding:10px 14px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer;}
-  button.danger{background:#dc3545;}
-  table{width:100%;border-collapse:collapse;margin-top:12px;}
-  th,td{border:1px solid #e0e0e0;padding:8px;text-align:center;font-size:14px;}
-  th{background:#007bff;color:#fff;}
-  .thumb{width:60px;height:60px;object-fit:cover;border-radius:6px;}
-  .timer{font-weight:700;color:#c23616;}
-  .valid{background:#e7f9ef;}
-  .invalid{background:#fdeaea;}
-  #cameraModal{display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:999;}
-  #cameraModal.active{display:flex;}
-  #cameraContent{background:#fff;padding:16px;border-radius:8px;max-width:420px;width:92%;}
-  video{width:100%;border-radius:6px;}
-  canvas{display:none;}
+  body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;padding:20px;max-width:1000px;margin:auto}
+  h1,h2{text-align:center;color:#222}
+  .tabs{display:flex;justify-content:center;gap:10px;margin-bottom:12px}
+  .tab-btn{padding:8px 14px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer}
+  .tab-btn.active{background:#0056b3}
+  .tab-content{display:none;background:#fff;padding:16px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);margin-bottom:18px}
+  .tab-content.active{display:block}
+  .flex-center{text-align:center;margin-bottom:10px}
+  input[type="text"],input[type="password"],input[type="date"]{padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;width:220px;margin-right:8px}
+  button{padding:8px 12px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer}
+  button.danger{background:#dc3545}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{border:1px solid #e9e9e9;padding:8px;text-align:center;font-size:13px}
+  th{background:#007bff;color:#fff}
+  .thumb{width:60px;height:60px;object-fit:cover;border-radius:6px}
+  .timer{font-weight:700;color:#c23616}
+  .valid{background:#e7f9ef}
+  .invalid{background:#fdeaea}
+  #cameraModal{display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:999}
+  #cameraModal.active{display:flex}
+  #cameraContent{background:#fff;padding:12px;border-radius:8px;max-width:420px;width:92%}
+  video{width:100%;border-radius:6px}
+  canvas{display:none}
+  .small{font-size:12px;color:#666;text-align:center}
 </style>
 </head>
 <body>
@@ -44,34 +45,32 @@
     <input id="namaMulai" type="text" placeholder="Nama karyawan..." />
     <button id="btnStart">Mulai Istirahat</button>
   </div>
-  <div class="flex-center" style="margin-top:8px;">
+  <div class="flex-center">
     <input id="namaSelesai" type="text" placeholder="Nama selesai istirahat..." />
     <button id="btnEnd">Selesai Istirahat</button>
   </div>
-  <p style="text-align:center;margin-top:12px;color:#666;font-size:13px">
-    Pastikan device terhubung internet. Kamera akan diminta untuk mengambil foto mulai/selesai.
-  </p>
+  <p class="small">Kamera akan diminta saat mulai/selesai untuk mengambil foto. Pastikan izinkan akses kamera.</p>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="tab-content">
-  <div class="flex-center" id="adminLoginArea">
+  <div class="flex-center">
     <input id="passwordAdmin" type="password" placeholder="Password admin..." />
     <button id="btnLoginAdmin">Login Admin</button>
     <button id="btnLogoutAdmin" class="danger" style="display:none;margin-left:8px">Logout</button>
   </div>
 
-  <div id="adminDashboard" style="display:none;">
-    <h2>🔁 Sedang Istirahat</h2>
+  <div id="adminDashboard" style="display:none">
+    <h2>🔁 Sedang Istirahat (breaks)</h2>
     <table>
-      <thead><tr><th>Nama</th><th>Mulai</th><th>Foto Mulai</th><th>Sisa / Lebih</th></tr></thead>
+      <thead><tr><th>Nama</th><th>Mulai</th><th>Foto Mulai</th><th>Waktu Sisa / Lebih</th></tr></thead>
       <tbody id="tabel"></tbody>
     </table>
 
-    <div style="height:24px"></div>
+    <div style="height:14px"></div>
 
     <div class="flex-center">
-      <input id="searchName" type="text" placeholder="Cari nama history..." />
+      <input id="searchName" type="text" placeholder="Cari history..." />
       <input id="filterTanggalDari" type="date" />
       <input id="filterTanggalSampai" type="date" />
       <button id="btnExportCSV">Export CSV</button>
@@ -96,39 +95,43 @@
   <div id="cameraContent">
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
-    <div style="display:flex;gap:8px;margin-top:8px;justify-content:center;">
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:center">
       <button id="btnTakePhoto">Ambil Foto</button>
       <button id="btnCancelPhoto" class="danger">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- Firebase modular SDK (type=module) -->
+<!-- Firebase modular SDK -->
 <script type="module">
-/* ========== CONFIG & IMPORTS ========== */
+/* ================== IMPORTS & CONFIG ================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, onSnapshot, orderBy
+  getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc,
+  onSnapshot, orderBy
 } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
+/* ---------- masukkan firebaseConfig yang kamu berikan ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyBpV3eSOG2lJdM0hqVwZ5npvLPgHL0yYqY",
   authDomain: "monitoringbreakcrew-5d7dc.firebaseapp.com",
   projectId: "monitoringbreakcrew-5d7dc",
-  storageBucket: "monitoringbreakcrew-5d7dc.appspot.com",
+  storageBucket: "monitoringbreakcrew-5d7dc.firebasestorage.app",
   messagingSenderId: "650007115253",
   appId: "1:650007115253:web:b95ae25f2762c235999cbc",
   measurementId: "G-4MPC043HY5"
 };
+/* ============================================================= */
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ========== SETTINGS ========== */
-// untuk testing cepat: 30 detik
-const BREAK_DURATION_MS = 30 * 1000; // ubah ke 60*60*1000 untuk 1 jam
+/* ================== SETTINGS ================== */
+// testing singkat: 30 detik -> ganti ke 60*60*1000 untuk 1 jam
+const BREAK_DURATION_MS = 30 * 1000;
 const ADMIN_PASS = "admin123";
 
-/* ========== UI refs ========== */
+/* ================== UI refs ================== */
 const tabs = document.querySelectorAll(".tab-btn");
 const contents = document.querySelectorAll(".tab-content");
 const btnStart = document.getElementById("btnStart");
@@ -147,8 +150,12 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const btnTakePhoto = document.getElementById("btnTakePhoto");
 const btnCancelPhoto = document.getElementById("btnCancelPhoto");
+const btnExportCSV = document.getElementById("btnExportCSV");
+const searchName = document.getElementById("searchName");
+const filterTanggalDari = document.getElementById("filterTanggalDari");
+const filterTanggalSampai = document.getElementById("filterTanggalSampai");
 
-/* ========== Tab switching ========== */
+/* ================== Tab switching ================== */
 tabs.forEach(t => {
   t.addEventListener("click", () => {
     tabs.forEach(x => x.classList.remove("active"));
@@ -158,10 +165,10 @@ tabs.forEach(t => {
   });
 });
 
-/* ========== Admin login ========== */
+/* ================== Admin login ================== */
 let isAdmin = false;
 btnLoginAdmin.onclick = () => {
-  if(passwordAdmin.value === ADMIN_PASS){
+  if (passwordAdmin.value === ADMIN_PASS) {
     isAdmin = true;
     passwordAdmin.value = "";
     btnLoginAdmin.style.display = "none";
@@ -180,22 +187,26 @@ btnLogoutAdmin.onclick = () => {
   alert("Logout admin");
 };
 
-/* ========== Camera helpers ========== */
+/* ================== Camera helpers ================== */
 let stream = null, fotoCallback = null, currentName = "", currentAction = "";
-async function openCamera(name, action, callback){
+async function openCamera(name, action, callback) {
   currentName = name; currentAction = action; fotoCallback = callback;
   cameraModal.classList.add("active");
-  try{
+  try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     video.srcObject = stream;
-  } catch(err){
+  } catch (err) {
     cameraModal.classList.remove("active");
+    console.error("camera error:", err);
     alert("Gagal akses kamera: " + err.message);
   }
 }
-function closeCamera(){
+function closeCamera() {
   cameraModal.classList.remove("active");
-  if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
 }
 btnTakePhoto.onclick = () => {
   const ctx = canvas.getContext("2d");
@@ -204,125 +215,203 @@ btnTakePhoto.onclick = () => {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   const fotoData = canvas.toDataURL("image/png");
   closeCamera();
-  if(fotoCallback) fotoCallback(currentName, currentAction, fotoData);
+  if (fotoCallback) fotoCallback(currentName, currentAction, fotoData);
 };
 btnCancelPhoto.onclick = () => { closeCamera(); };
 
-/* ========== Start / End logic (simpan ke Firestore) ========== */
+/* ================== Start / End logic (Firestore) ================== */
 btnStart.onclick = async () => {
   const nama = namaMulai.value.trim();
-  if(!nama){ alert("Isi nama!"); return; }
+  if (!nama) { alert("Isi nama!"); return; }
 
-  // cek apakah sudah sedang istirahat
-  const q = query(collection(db,"daftar"), where("nama","==", nama));
-  const snap = await getDocs(q);
-  if(!snap.empty){ alert("Karyawan sudah sedang istirahat"); return; }
+  try {
+    // pastikan tidak double
+    const q = query(collection(db, "breaks"), where("nama", "==", nama));
+    const snap = await getDocs(q);
+    if (!snap.empty) { alert("Karyawan sudah sedang istirahat"); return; }
 
-  // buka kamera -> callback menyimpan dokumen
-  openCamera(nama, "start", async (namaCB, action, fotoData) => {
-    const nowMs = Date.now();
-    try{
-      await addDoc(collection(db,"daftar"), {
-        nama: namaCB,
-        mulaiMillis: nowMs,
-        selesaiMillis: nowMs + BREAK_DURATION_MS,
-        fotoMulai: fotoData
-      });
-      namaMulai.value = "";
-    } catch(err){
-      alert("Gagal simpan mulai: " + err.message);
-    }
-  });
+    // buka kamera -> callback menyimpan dokumen ke breaks
+    openCamera(nama, "start", async (namaCB, action, fotoData) => {
+      const nowMs = Date.now();
+      try {
+        await addDoc(collection(db, "breaks"), {
+          nama: namaCB,
+          mulaiMillis: nowMs,
+          selesaiMillis: nowMs + BREAK_DURATION_MS,
+          fotoMulai: fotoData
+        });
+        namaMulai.value = "";
+        console.log("saved break for", namaCB);
+      } catch (err) {
+        console.error("addDoc breaks error:", err);
+        alert("Gagal menyimpan mulai: " + err.message);
+      }
+    });
+  } catch (err) {
+    console.error("cek mulai error:", err);
+    alert("Terjadi error (cek console).");
+  }
 };
 
 btnEnd.onclick = async () => {
   const nama = namaSelesai.value.trim();
-  if(!nama){ alert("Isi nama!"); return; }
+  if (!nama) { alert("Isi nama!"); return; }
 
-  // cek apakah ada record
-  const q = query(collection(db,"daftar"), where("nama","==", nama));
-  const snap = await getDocs(q);
-  if(snap.empty){ alert("Nama tidak ditemukan di daftar istirahat"); return; }
+  try {
+    const q = query(collection(db, "breaks"), where("nama", "==", nama));
+    const snap = await getDocs(q);
+    if (snap.empty) { alert("Nama tidak ditemukan di daftar istirahat"); return; }
 
-  openCamera(nama, "end", async (namaCB, action, fotoData) => {
-    const nowMs = Date.now();
-    try{
-      // untuk tiap dokumen matching (biasanya 1)
-      snap.forEach(async docSnap => {
-        const rec = docSnap.data();
-        const mulaiMs = rec.mulaiMillis;
-        const durasiDetik = Math.floor((nowMs - mulaiMs) / 1000);
-        const kategori = durasiDetik <= 30 ? "sesuai" : "tidak";
-        // tambah ke history
-        await addDoc(collection(db,"history"), {
-          nama: namaCB,
-          tanggal: new Date(nowMs).toLocaleDateString(),
-          mulai: new Date(mulaiMs).toLocaleTimeString(),
-          selesai: new Date(nowMs).toLocaleTimeString(),
-          durasi: durasiDetik + " detik",
-          kategori,
-          fotoMulai: rec.fotoMulai || null,
-          fotoSelesai: fotoData
-        });
-        // hapus dari daftar
-        await deleteDoc(doc(db,"daftar", docSnap.id));
-      });
-      namaSelesai.value = "";
-    } catch(err){
-      alert("Gagal simpan selesai: " + err.message);
-    }
-  });
+    openCamera(nama, "end", async (namaCB, action, fotoData) => {
+      const nowMs = Date.now();
+      try {
+        // pindahkan semua doc matching ke history, lalu hapus
+        for (const docSnap of snap.docs) {
+          const rec = docSnap.data();
+          const mulaiMs = rec.mulaiMillis;
+          const durasiDetik = Math.floor((nowMs - mulaiMs) / 1000);
+          const kategori = durasiDetik <= 30 ? "sesuai" : "tidak";
+          // simpan ke history
+          await addDoc(collection(db, "history"), {
+            nama: namaCB,
+            tanggalISO: new Date(nowMs).toISOString(), // untuk sorting
+            tanggal: new Date(nowMs).toLocaleDateString(),
+            mulai: new Date(mulaiMs).toLocaleTimeString(),
+            selesai: new Date(nowMs).toLocaleTimeString(),
+            durasi: durasiDetik + " detik",
+            durasiSeconds: durasiDetik,
+            kategori,
+            fotoMulai: rec.fotoMulai || null,
+            fotoSelesai: fotoData || null
+          });
+          // hapus dari breaks
+          await deleteDoc(doc(db, "breaks", docSnap.id));
+          console.log("moved to history & deleted break id:", docSnap.id);
+        }
+        namaSelesai.value = "";
+      } catch (err) {
+        console.error("end break error:", err);
+        alert("Gagal menyelesaikan break: " + err.message);
+      }
+    });
+  } catch (err) {
+    console.error("cek selesai error:", err);
+    alert("Terjadi error (cek console).");
+  }
 };
 
-/* ========== Realtime listeners ========== */
-// Daftar (sedang istirahat) - realtime
-onSnapshot(query(collection(db,"daftar"), orderBy("mulaiMillis","asc")), snapshot => {
+/* ================== Realtime listeners (onSnapshot) ================== */
+/* -- breaks realtime -- */
+let lastBreaksSnapshot = null;
+onSnapshot(query(collection(db, "breaks"), orderBy("mulaiMillis", "asc")), snapshot => {
+  lastBreaksSnapshot = snapshot;
+  renderBreaksSnapshot(snapshot);
+});
+
+/* -- history realtime (ambil semua, urut terbalik menurut tanggalISO) -- */
+onSnapshot(query(collection(db, "history"), orderBy("tanggalISO", "desc")), snapshot => {
+  renderHistorySnapshot(snapshot);
+});
+
+/* ================== Render helpers ================== */
+function renderBreaksSnapshot(snapshot) {
   tabel.innerHTML = "";
   snapshot.forEach(d => {
     const data = d.data();
-    const now = Date.now();
-    let sisaMs = (data.selesaiMillis || 0) - now;
-    let status = "Sisa";
-    if(sisaMs < 0){ status = "Lebih"; sisaMs = Math.abs(sisaMs); }
-    const m = Math.floor((sisaMs/1000/60)%60);
-    const s = Math.floor((sisaMs/1000)%60);
-    const fotoHtml = data.fotoMulai ? `<img class="thumb" src="${data.fotoMulai}">` : "";
     const mulaiTime = new Date(data.mulaiMillis).toLocaleTimeString();
-    tabel.insertAdjacentHTML("beforeend", `<tr><td>${data.nama}</td><td>${mulaiTime}</td><td>${fotoHtml}</td><td class="timer">${status}: ${m}m ${s}s</td></tr>`);
+    const selesaiMillis = data.selesaiMillis || 0;
+    const fotoHtml = data.fotoMulai ? `<img class="thumb" src="${data.fotoMulai}">` : "";
+    // buat row dengan data attributes utk timer update
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(data.nama)}</td>
+                    <td>${escapeHtml(mulaiTime)}</td>
+                    <td>${fotoHtml}</td>
+                    <td class="timer" data-selesai="${selesaiMillis}" data-mulai="${data.mulaiMillis}">...</td>`;
+    tabel.appendChild(tr);
   });
-});
+  // langsung update timers sekarang juga
+  updateTimers();
+}
 
-// History - realtime
-onSnapshot(query(collection(db,"history"), orderBy("tanggal","desc")), snapshot => {
+/* update semua cell timer setiap detik */
+function updateTimers() {
+  const cells = document.querySelectorAll("#tabel td.timer");
+  const now = Date.now();
+  cells.forEach(td => {
+    const selesaiMs = Number(td.dataset.selesai) || 0;
+    const mulaiMs = Number(td.dataset.mulai) || 0;
+    let sisaMs = selesaiMs - now;
+    let status = "Sisa";
+    if (sisaMs < 0) { status = "Lebih"; sisaMs = Math.abs(sisaMs); }
+    const m = Math.floor((sisaMs / 1000 / 60) % 60);
+    const s = Math.floor((sisaMs / 1000) % 60);
+    td.textContent = `${status}: ${m}m ${s}s`;
+  });
+}
+setInterval(updateTimers, 1000);
+
+/* render history */
+function renderHistorySnapshot(snapshot) {
   historySesuai.innerHTML = "";
   historyTidak.innerHTML = "";
   snapshot.forEach(d => {
     const h = d.data();
     const fotoMulaiHtml = h.fotoMulai ? `<img class="thumb" src="${h.fotoMulai}">` : "";
     const fotoSelesaiHtml = h.fotoSelesai ? `<img class="thumb" src="${h.fotoSelesai}">` : "";
-    const row = `<tr class="${h.kategori==="sesuai"?'valid':'invalid'}"><td>${h.nama}</td><td>${h.tanggal}</td><td>${h.mulai}</td><td>${h.selesai}</td><td>${h.durasi}</td><td>${fotoMulaiHtml}</td><td>${fotoSelesaiHtml}</td></tr>`;
-    if(h.kategori === "sesuai") historySesuai.insertAdjacentHTML("beforeend", row);
+    const row = `<tr class="${h.kategori === "sesuai" ? "valid" : "invalid"}">
+      <td>${escapeHtml(h.nama)}</td>
+      <td>${escapeHtml(h.tanggal)}</td>
+      <td>${escapeHtml(h.mulai)}</td>
+      <td>${escapeHtml(h.selesai)}</td>
+      <td>${escapeHtml(h.durasi)}</td>
+      <td>${fotoMulaiHtml}</td>
+      <td>${fotoSelesaiHtml}</td>
+    </tr>`;
+    if (h.kategori === "sesuai") historySesuai.insertAdjacentHTML("beforeend", row);
     else historyTidak.insertAdjacentHTML("beforeend", row);
   });
-});
+}
 
-/* ========== Optional: Export CSV (simple) ========== */
-document.getElementById("btnExportCSV").onclick = async () => {
-  // ambil semua history (simple approach)
-  const snap = await getDocs(collection(db,"history"));
-  const rows = [["Nama","Tanggal","Mulai","Selesai","Durasi","Kategori"]];
-  snap.forEach(s => {
-    const r = s.data();
-    rows.push([r.nama, r.tanggal, r.mulai, r.selesai, r.durasi, r.kategori]);
-  });
-  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "history_istirahat.csv"; a.click();
-  URL.revokeObjectURL(url);
+/* ================== Export CSV ================== */
+btnExportCSV.onclick = async () => {
+  try {
+    const snap = await getDocs(collection(db, "history"));
+    const rows = [["Nama", "Tanggal", "Mulai", "Selesai", "Durasi", "Kategori"]];
+    snap.forEach(s => {
+      const r = s.data();
+      rows.push([r.nama, r.tanggal, r.mulai, r.selesai, r.durasi, r.kategori]);
+    });
+    const csv = rows.map(r => r.map(cell => `"${String(cell || "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "history_istirahat.csv"; a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("export error:", err);
+    alert("Gagal export (cek console).");
+  }
 };
+
+/* ================== UTIL ================== */
+function escapeHtml(str) {
+  if (!str && str !== 0) return "";
+  return String(str).replace(/[&<>"']/g, function (m) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+  });
+}
+
+/* ================== NOTES for debugging ================== */
+/*
+  - Jika device lain tidak melihat update:
+    1) buka DevTools (F12) -> Console, lihat error.
+    2) cek Firestore rules (sementara untuk testing gunakan: allow read, write: if true;)
+    3) pastikan halaman diakses via HTTPS (GitHub Pages) atau localhost.
+  - Jika "Selesai" tidak menghapus: cek console logs (pindah ke history & deleted break id: ...)
+*/
+
 </script>
 </body>
 </html>
+
 
